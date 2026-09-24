@@ -1,0 +1,9 @@
+# --- Frontend (React / Vite) ---
+web/node_modules/
+
+
+# --- Backend (FastAPI) ---
+
+
+# --- Fichiers système et caches ---
+
