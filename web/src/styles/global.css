@@ -1,0 +1,66 @@
+/* web/src/styles/global.css */
+
+/* --- Variables de base (Issues de vos maquettes) --- */
+:root {
+  --bg-principal: #Faf7f2; /* Beige très clair pour le fond */
+  --bg-header: #1A1A1A; /* Noir/Gris très foncé pour la navigation */
+  --couleur-or: #B89855; /* Doré pour le logo et les accents */
+  --couleur-bordeaux: #7A1D2E; /* Bordeaux pour les boutons principaux */
+  --texte-principal: #333333;
+  --texte-secondaire: #666666;
+  --blanc: #FFFFFF;
+  --bordure: #E5E5E5;
+
+  /* Typographies : Importez ces polices dans votre index.html via Google Fonts */
+  --font-titre: 'Playfair Display', serif;
+  --font-texte: 'Inter', sans-serif;
+}
+
+/* --- Reset et Styles Globaux --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-principal);
+  color: var(--texte-principal);
+  font-family: var(--font-texte);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .serif-title {
+  font-family: var(--font-titre);
+  font-weight: 500;
+  color: var(--texte-principal);
+}
+
+/* --- Boutons globaux --- */
+.btn-primaire {
+  background-color: var(--couleur-bordeaux);
+  color: var(--blanc);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-family: var(--font-texte);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primaire:hover {
+  background-color: #5d1522; /* Bordeaux plus foncé */
+}
+
+/* --- Badges de statut --- */
+.badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.badge.en-cours { background-color: #E29547; color: var(--blanc); }
+.badge.termine { background-color: #2F6B4C; color: var(--blanc); }
+.badge.a-decouvrir { background-color: #426986; color: var(--blanc); }

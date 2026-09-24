@@ -1,0 +1,100 @@
+/* web/src/styles/login.css */
+
+.login-page-container {
+  /* Assurez-vous d'avoir une image de fond dans un dossier public ou src/assets */
+  background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('/voiture-fond-sombre.jpg');
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-texte);
+}
+
+.login-card {
+  background-color: var(--blanc);
+  padding: 40px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.login-logo {
+  background-color: var(--couleur-or);
+  color: var(--blanc);
+  font-family: var(--font-titre);
+  font-size: 1.5rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 6px;
+  margin: 0 auto 16px auto;
+}
+
+.login-title {
+  font-family: var(--font-titre);
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  color: var(--texte-secondaire);
+  font-size: 0.9rem;
+  margin-bottom: 32px;
+}
+
+.login-form-group {
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.login-form-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--texte-secondaire);
+  margin-bottom: 8px;
+}
+
+.login-form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--bordure);
+  border-radius: 6px;
+  background-color: #F9F9F9;
+  font-size: 1rem;
+}
+
+.login-form-group input:focus {
+  outline: none;
+  border-color: var(--couleur-or);
+}
+
+.login-forgot-password {
+  color: var(--couleur-bordeaux);
+  text-decoration: none;
+}
+
+.login-submit-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.login-footer {
+  margin-top: 24px;
+  font-size: 0.85rem;
+  color: var(--texte-secondaire);
+}
+
+.login-footer a {
+  color: var(--couleur-bordeaux);
+  font-weight: bold;
+  text-decoration: none;
+}
