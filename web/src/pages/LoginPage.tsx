@@ -15,9 +15,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Simulation de l'appel au service d'authentification
-      // const response = await authService.login(email, password);
-      // login(response.token, response.user);
       navigate('/collection');
     } catch (err) {
       setError(err instanceof Error ? err.message : "Identifiants invalides.");
