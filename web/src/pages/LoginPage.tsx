@@ -1,9 +1,11 @@
-import { useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import '../styles/login.css';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -15,9 +17,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      await login(email, password);
       navigate('/collection');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Identifiants invalides.");
+      setError(err instanceof Error ? err.message : 'Identifiants invalides.');
     } finally {
       setLoading(false);
     }
@@ -66,7 +69,7 @@ export default function LoginPage() {
         </form>
 
         <div className="login-footer">
-          Pas encore de compte ? <a href="/register">S'inscrire</a>
+          Pas encore de compte ? <Link to="/register">S'inscrire</Link>
         </div>
       </div>
     </div>
