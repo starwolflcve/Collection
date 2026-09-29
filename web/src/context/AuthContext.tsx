@@ -1,5 +1,6 @@
 // src/context/AuthContext.tsx
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import type { ReactNode } from "react";
 import type { AuthResponse, User } from "../../types/api";
 import { httpClient } from "../services/httpClient";
 import { useLocalStorage } from "../hooks/useLocalStorage";
@@ -22,22 +23,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      httpClient.get<User>("/auth/me")
-        .then(setUser)
-        .catch(() => {
+    let actif = true;
+
+    if (!token) {
+      setUser(null);
+      setIsLoading(false);
+      return () => {
+        actif = false;
+      };
+    }
+
+    setIsLoading(true);
+    httpClient.get<User>("/auth/me")
+      .then((utilisateur) => {
+        if (actif) setUser(utilisateur);
+      })
+      .catch(() => {
+        if (actif) {
           setToken(null);
           setUser(null);
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      setIsLoading(false);
-    }
+        }
+      })
+      .finally(() => {
+        if (actif) setIsLoading(false);
+      });
+
+    return () => {
+      actif = false;
+    };
   }, [token, setToken]);
 
   const login = async (email: string, password: string) => {
-    const response = await httpClient.post<AuthResponse>("/auth/login", { email, password });
-    setToken(response.access_token);
+    setIsLoading(true);
+    try {
+      const response = await httpClient.post<AuthResponse>("/auth/login", { email, password });
+      setToken(response.access_token);
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
   };
 
   const register = async (email: string, password: string) => {
@@ -50,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated: Boolean(token), login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ token, user, isAuthenticated: Boolean(token && user), login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
