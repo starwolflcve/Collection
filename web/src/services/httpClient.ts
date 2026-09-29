@@ -1,35 +1,51 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+// src/services/httpClient.ts
+import type { ApiErrorFormat } from "../../types/api";
 
-interface RequestOptions extends RequestInit {
-  token?: string | null;
+const API_URL = "http://localhost:8000";
+
+export class ApiError extends Error {
+  public code: number;
+  constructor(code: number, message: string) {
+    super(message);
+    this.code = code;
+  }
 }
 
-export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const headers = new Headers(options.headers ?? {});
+async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const token = localStorage.getItem("token")?.replace(/"/g, "");
+  
+  const headers = new Headers(options.headers);
+  headers.set("Content-Type", "application/json");
 
-  if (!headers.has('Content-Type') && options.body !== undefined) {
-    headers.set('Content-Type', 'application/json');
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
-  if (options.token) {
-    headers.set('Authorization', `Bearer ${options.token}`);
-  }
-
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
+  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null);
-    const message = payload?.detail ?? payload?.message ?? 'Une erreur est survenue.';
-    throw new Error(message);
+    let errorMessage = "Une erreur est survenue";
+    try {
+      const errorData = (await response.json()) as ApiErrorFormat;
+      if (errorData.erreur) {
+        errorMessage = errorData.erreur.message;
+      }
+    } catch (e) {
+      // Ignorer si le format d'erreur n'est pas du JSON valide
+    }
+    throw new ApiError(response.status, errorMessage);
   }
 
   if (response.status === 204) {
-    return undefined as T;
+    return {} as T; // Pas de contenu
   }
 
   return response.json() as Promise<T>;
 }
+
+export const httpClient = {
+  get: <T>(url: string) => request<T>(url, { method: "GET" }),
+  post: <T>(url: string, body: unknown) => request<T>(url, { method: "POST", body: JSON.stringify(body) }),
+  patch: <T>(url: string, body: unknown) => request<T>(url, { method: "PATCH", body: JSON.stringify(body) }),
+  delete: <T>(url: string) => request<T>(url, { method: "DELETE" }),
+};

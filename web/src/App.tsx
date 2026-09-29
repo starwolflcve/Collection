@@ -5,29 +5,47 @@ import CataloguePage from './pages/CataloguePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CollectionPage from './pages/CollectionPage';
+import VoitureDetailPage from './pages/VoitureDetailPage';
 
 function AppLayout() {
   const { isAuthenticated, logout } = useAuth();
 
   return (
     <>
-      <nav style={{ padding: '1rem', backgroundColor: '#1A1A1A', marginBottom: '20px' }}>
-        <Link to="/" style={{ marginRight: '15px', color: 'white', textDecoration: 'none' }}>Catalogue</Link>
-        <Link to="/collection" style={{ marginRight: '15px', color: 'white', textDecoration: 'none' }}>Ma Collection</Link>
-        {!isAuthenticated ? (
-          <Link to="/login" style={{ color: 'white', textDecoration: 'none' }}>Connexion</Link>
-        ) : (
-          <button type="button" onClick={logout} style={{ color: 'white', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-            Déconnexion
-          </button>
-        )}
+      <nav className="topbar">
+        <div className="topbar-inner">
+          <div className="brand-wrap">
+            <div className="brand-mark">M</div>
+            <div>
+              <div className="brand-title">MA COLLECTION</div>
+              <div className="brand-subtitle">REGISTRE AUTOMOBILE</div>
+            </div>
+          </div>
+
+          <div className="search-box">
+            <span className="search-icon">⌕</span>
+            <input type="text" placeholder="Rechercher une voiture, une marque..." />
+          </div>
+
+          <div className="nav-links">
+            <Link to="/">Catalogue</Link>
+            <Link to="/collection">Ma Collection</Link>
+            <Link to="/stats">Statistiques</Link>
+            {!isAuthenticated ? (
+              <Link to="/login">Connexion</Link>
+            ) : (
+              <button type="button" onClick={logout} className="logout-btn">Déconnexion</button>
+            )}
+          </div>
+        </div>
       </nav>
 
-      <main style={{ padding: '0 20px' }}>
+      <main className="page-shell">
         <Routes>
           <Route path="/" element={<CataloguePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/voiture/:slug" element={<VoitureDetailPage />} />
           <Route
             path="/collection"
             element={

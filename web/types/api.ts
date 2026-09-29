@@ -1,3 +1,5 @@
+// src/types/api.ts
+
 export type Statut = "a decouvrir" | "en cours" | "termine";
 
 export interface Item {
@@ -7,10 +9,11 @@ export interface Item {
   categorie: string;
   description: string;
   annee: number;
-  constructeur: string;
-  motorisation: string;
-  puissance: string;
-  pays_origine: string;
+  // Champs spécifiques à l'univers automobile
+  constructeur?: string;
+  motorisation?: string;
+  puissance?: string;
+  pays?: string;
 }
 
 export interface Entry {
@@ -22,18 +25,26 @@ export interface Entry {
   item: Item;
 }
 
+export interface PaginatedResponse<T> {
+  total: number;
+  page: number;
+  limit: number;
+  results: T[];
+}
+
 export interface User {
   id: number;
   email: string;
 }
 
-export interface AuthToken {
+export interface AuthResponse {
   access_token: string;
   token_type: string;
 }
 
-export interface Stats {
-  total: number;
-  par_statut: Record<string, number>;
-  note_moyenne: number;
+export interface ApiErrorFormat {
+  erreur: {
+    code: number;
+    message: string;
+  };
 }
