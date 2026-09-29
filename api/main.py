@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from core.erreurs import enregistrer_handlers
 from db.base import creer_tables
 from routers.auth import router as router_auth
 from routers.items import router as router_items
@@ -28,6 +29,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+enregistrer_handlers(app)
 
 app.include_router(router_auth)
 app.include_router(router_items)
