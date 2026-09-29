@@ -79,7 +79,7 @@ export default function VoitureDetailPage() {
             </select>
 
             <div style={{ margin: '18px 0 10px', color: '#7a1d2e', fontWeight: 700 }}>Note personnelle</div>
-            <div style={{ letterSpacing: '0.15em', color: '#d4a94f', fontSize: 18 }}>{'★'.repeat(voiture.note)}{'☆'.repeat(5 - voiture.note)}</div>
+            <div style={{ letterSpacing: '0.15em', color: '#d4a94f', fontSize: 18 }}>{'★'.repeat(voiture.note ?? 0)}{'☆'.repeat(5 - (voiture.note ?? 0))}</div>
 
             <div style={{ marginTop: 18, color: '#3b3b3b', lineHeight: 1.7 }}>
               <strong>Commentaires / notes</strong>
