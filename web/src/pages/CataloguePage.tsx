@@ -2,9 +2,9 @@
 import { useState } from "react";
 import type { Item } from "../../types/api";
 import { useDebounce } from "../hooks/useDebounce";
-import EmptyState from "../composants/common/EmptyState";
-import VoitureCard from "../composants/catalogue/VoitureCard";
-import VoitureDetail from "../composants/catalogue/VoitureDetail";
+import EmptyState from "../components/common/EmptyState";
+import VoitureCard from "../components/catalogue/VoitureCard";
+import VoitureDetail from "../components/catalogue/VoitureDetail";
 import { voitures } from "../data/voitures";
 
 const voituresCatalogue: Item[] = voitures.map((voiture) => ({
