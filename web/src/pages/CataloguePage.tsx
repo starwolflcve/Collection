@@ -1,10 +1,19 @@
 // src/pages/CataloguePage.tsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Item } from "../../types/api";
 import { useDebounce } from "../hooks/useDebounce";
+<<<<<<< HEAD
 import EmptyState from "../components/common/EmptyState";
 import VoitureCard from "../components/catalogue/VoitureCard";
 import VoitureDetail from "../components/catalogue/VoitureDetail";
+=======
+import EmptyState from "../composants/common/EmptyState";
+import VoitureCard from "../composants/catalogue/VoitureCard";
+import VoitureDetail from "../composants/catalogue/VoitureDetail";
+import { useAuth } from "../context/AuthContext";
+import { useCollection } from "../context/CollectionContext";
+>>>>>>> 1c7b3f3 (mise en place collection)
 import { voitures } from "../data/voitures";
 
 const voituresCatalogue: Item[] = voitures.map((voiture) => ({
@@ -21,7 +30,12 @@ const voituresCatalogue: Item[] = voitures.map((voiture) => ({
 }));
 
 export default function CataloguePage() {
+  const navigate = useNavigate();
+  const { token } = useAuth();
+  const { entries, isLoading: collectionLoading, addEntry } = useCollection();
   const [itemSelectionne, setItemSelectionne] = useState<Item | null>(null);
+  const [itemEnAjout, setItemEnAjout] = useState<number | null>(null);
+  const [erreurAjout, setErreurAjout] = useState<string | null>(null);
   const [recherche, setRecherche] = useState("");
   const [categorie, setCategorie] = useState("");
   const [page, setPage] = useState(1);
@@ -36,6 +50,23 @@ export default function CataloguePage() {
   const total = voituresFiltrees.length;
   const nombrePages = Math.max(1, Math.ceil(total / pageSize));
   const items = voituresFiltrees.slice((page - 1) * pageSize, page * pageSize);
+
+  const ajouterALaCollection = async (item: Item) => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    setItemEnAjout(item.id);
+    setErreurAjout(null);
+    try {
+      await addEntry(item, { statut: "a_decouvrir", note: null, commentaire: "" });
+    } catch (error) {
+      setErreurAjout(error instanceof Error ? error.message : "Impossible d'ajouter ce véhicule.");
+    } finally {
+      setItemEnAjout(null);
+    }
+  };
 
   return (
     <div className="catalogue-page">
@@ -64,13 +95,22 @@ export default function CataloguePage() {
           </select>
         </div>
 
+        {erreurAjout && <p className="catalogue-state" role="alert">{erreurAjout}</p>}
+
         {items.length === 0 && <EmptyState message="Aucun véhicule trouvé." />}
         
         {items.length > 0 && (
           <>
             <div className="cars-grid">
               {items.map((item) => (
-                <VoitureCard key={item.id} item={item} onOpenDetails={setItemSelectionne} />
+                <VoitureCard
+                  key={item.id}
+                  item={item}
+                  onOpenDetails={setItemSelectionne}
+                  onAddToCollection={ajouterALaCollection}
+                  isInCollection={entries.some((entry) => entry.item.id === item.id)}
+                  isAdding={itemEnAjout === item.id || collectionLoading}
+                />
               ))}
             </div>
             {/* Composant Pagination à extraire */}

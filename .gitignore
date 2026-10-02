@@ -3,6 +3,11 @@ web/node_modules/
 
 
 # --- Backend (FastAPI) ---
+api/.venv/
+api/.env
+api/*.db
+api/__pycache__/
+api/**/__pycache__/
 
 
 # --- Fichiers système et caches ---

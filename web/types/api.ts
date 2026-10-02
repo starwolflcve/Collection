@@ -1,6 +1,6 @@
 // src/types/api.ts
 
-export type Statut = "a decouvrir" | "en cours" | "termine";
+export type Statut = "a_decouvrir" | "en_cours" | "termine";
 
 export interface Item {
   id: number;

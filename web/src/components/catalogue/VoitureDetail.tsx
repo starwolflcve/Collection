@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { Item, Statut } from '../../../types/api';
-// import { apiClient } from '../../services/httpClient';
+import { useCollection } from '../../context/CollectionContext';
 
 interface VoitureDetailProps {
   item: Item;
@@ -9,7 +9,8 @@ interface VoitureDetailProps {
 }
 
 export default function VoitureDetail({ item, onClose }: VoitureDetailProps) {
-  const [statut, setStatut] = useState<Statut>("en cours");
+  const { addEntry } = useCollection();
+  const [statut, setStatut] = useState<Statut>("en_cours");
   const [note, setNote] = useState<number>(0);
   const [commentaire, setCommentaire] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
@@ -20,12 +21,8 @@ export default function VoitureDetail({ item, onClose }: VoitureDetailProps) {
     setLoading(true);
     setError(null);
     try {
-      // Décommentez pour relier à l'API :
-      // await apiClient('/me/collection', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ item_id: item.id, statut, note, commentaire })
-      // });
-      onClose(); // Ferme la modale en cas de succès
+      await addEntry(item, { statut, note: note || null, commentaire });
+      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur lors de l'ajout");
     } finally {
@@ -91,8 +88,8 @@ export default function VoitureDetail({ item, onClose }: VoitureDetailProps) {
                   value={statut} onChange={(e) => setStatut(e.target.value as Statut)}
                   style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #CCC' }}
                 >
-                  <option value="a decouvrir">À découvrir</option>
-                  <option value="en cours">En cours de restauration</option>
+                  <option value="a_decouvrir">À découvrir</option>
+                  <option value="en_cours">En cours de restauration</option>
                   <option value="termine">Terminé</option>
                 </select>
               </div>
@@ -101,9 +98,9 @@ export default function VoitureDetail({ item, onClose }: VoitureDetailProps) {
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 'bold', color: '#666', marginBottom: '5px' }}>NOTE PERSONNELLE</label>
                 <div style={{ color: '#B89855', fontSize: '1.5rem', cursor: 'pointer' }}>
                   {[1, 2, 3, 4, 5].map(star => (
-                    <span key={star} onClick={() => setNote(star)}>
+                    <button key={star} type="button" aria-label={`${star} sur 5`} onClick={() => setNote(star)} style={{ color: 'inherit', border: 0, padding: 0, background: 'none', font: 'inherit', cursor: 'pointer' }}>
                       {star <= note ? '★' : '☆'}
-                    </span>
+                    </button>
                   ))}
                   <span style={{ color: '#666', fontSize: '0.8rem', marginLeft: '10px' }}>({note}/5)</span>
                 </div>

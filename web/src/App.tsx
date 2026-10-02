@@ -1,6 +1,11 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+<<<<<<< HEAD
 import ProtectedRoute from './components/layout/ProtectedRoute';
+=======
+import { CollectionProvider } from './context/CollectionContext';
+import ProtectedRoute from './composants/layout/ProtectedRoute';
+>>>>>>> 1c7b3f3 (mise en place collection)
 import CataloguePage from './pages/CataloguePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -64,7 +69,9 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <AppLayout />
+        <CollectionProvider>
+          <AppLayout />
+        </CollectionProvider>
       </BrowserRouter>
     </AuthProvider>
   );
