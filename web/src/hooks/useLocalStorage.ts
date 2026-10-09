@@ -1,26 +1,25 @@
-// src/hooks/useLocalStorage.ts
 import { useCallback, useState } from "react";
 
-export function useLocalStorage<T>(cle: string, valeurInitiale: T): [T, (v: T) => void] {
-  const [valeurStockee, setValeurStockee] = useState<T>(() => {
+export function useLocalStorage<T>(
+  cle: string,
+  valeurInitiale: T,
+): [T, (v: T) => void] {
+  const [valeur, setValeur] = useState<T>(() => {
     try {
-      const item = window.localStorage.getItem(cle);
-      return item ? JSON.parse(item) : valeurInitiale;
-    } catch (error) {
-      console.warn("Erreur de lecture du localStorage", error);
+      const raw = localStorage.getItem(cle);
+      return raw === null ? valeurInitiale : (JSON.parse(raw) as T);
+    } catch {
       return valeurInitiale;
     }
   });
 
-  const setValue = useCallback((valeur: T) => {
-    try {
-      setValeurStockee(valeur);
-      window.localStorage.setItem(cle, JSON.stringify(valeur));
-    } catch (error) {
-      console.warn("Erreur d'écriture dans le localStorage", error);
-    }
-  }, [cle]);
+  const definir = useCallback(
+    (v: T): void => {
+      setValeur(v);
+      localStorage.setItem(cle, JSON.stringify(v));
+    },
+    [cle],
+  );
 
-  return [valeurStockee, setValue];
+  return [valeur, definir];
 }
-
