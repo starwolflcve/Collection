@@ -1,6 +1,6 @@
 import { useCollection } from "../context/CollectionContext";
-import EmptyState from "../composants/common/EmptyState";
-import ErrorState from "../composants/common/ErrorState";
+import EmptyState from "../components/common/EmptyState";
+import ErrorState from "../components/common/ErrorState";
 import EntryCard from "../composants/collection/EntryCard";
 
 export default function CollectionPage() {

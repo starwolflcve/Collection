@@ -1,15 +1,12 @@
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-<<<<<<< HEAD
 import ProtectedRoute from './components/layout/ProtectedRoute';
-=======
 import { CollectionProvider } from './context/CollectionContext';
-import ProtectedRoute from './composants/layout/ProtectedRoute';
->>>>>>> 1c7b3f3 (mise en place collection)
 import CataloguePage from './pages/CataloguePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import CollectionPage from './pages/CollectionPage';
+import StatsPage from './pages/StatsPage';
 import VoitureDetailPage from './pages/VoitureDetailPage';
 
 function AppLayout() {
@@ -56,6 +53,14 @@ function AppLayout() {
             element={
               <ProtectedRoute>
                 <CollectionPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/stats"
+            element={
+              <ProtectedRoute>
+                <StatsPage />
               </ProtectedRoute>
             }
           />

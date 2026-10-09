@@ -25,6 +25,12 @@ export interface Entry {
   item: Item;
 }
 
+export interface Stats {
+  total: number;
+  par_statut: Record<Statut, number>;
+  note_moyenne: number;
+}
+
 export interface PaginatedResponse<T> {
   total: number;
   page: number;

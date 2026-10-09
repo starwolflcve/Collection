@@ -3,17 +3,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Item } from "../../types/api";
 import { useDebounce } from "../hooks/useDebounce";
-<<<<<<< HEAD
 import EmptyState from "../components/common/EmptyState";
 import VoitureCard from "../components/catalogue/VoitureCard";
 import VoitureDetail from "../components/catalogue/VoitureDetail";
-=======
-import EmptyState from "../composants/common/EmptyState";
-import VoitureCard from "../composants/catalogue/VoitureCard";
-import VoitureDetail from "../composants/catalogue/VoitureDetail";
 import { useAuth } from "../context/AuthContext";
 import { useCollection } from "../context/CollectionContext";
->>>>>>> 1c7b3f3 (mise en place collection)
 import { voitures } from "../data/voitures";
 
 const voituresCatalogue: Item[] = voitures.map((voiture) => ({
