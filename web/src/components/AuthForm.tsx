@@ -28,19 +28,43 @@ export function AuthForm({ titre, bouton, onSubmit }: Props) {
   }
 
   return (
-    <form className="card form" onSubmit={handle}>
-      <h1>{titre}</h1>
-      <label>Email
-        <input type="email" required value={email}
-          onChange={(e) => setEmail(e.target.value)} />
-      </label>
-      <label>Mot de passe
-        <input type="password" required minLength={8} value={password}
-          onChange={(e) => setPassword(e.target.value)} />
-      </label>
-      {error && <p className="state-error" role="alert">{error}</p>}
-      <button type="submit" disabled={loading}>
-        {loading ? "…" : bouton}
+    <form className="auth-card" onSubmit={handle}>
+      <div className="auth-card-heading">
+        <span className="auth-card-mark" aria-hidden="true">MC</span>
+        <p className="auth-eyebrow">Espace membre</p>
+        <h1>{titre}</h1>
+        <p className="auth-description">
+          {titre === "Inscription"
+            ? "Créez votre compte pour commencer votre registre personnel."
+            : "Connectez-vous pour retrouver votre collection personnelle."}
+        </p>
+      </div>
+      <div className="auth-fields">
+        <label htmlFor="auth-email">Adresse e-mail</label>
+        <input
+          id="auth-email"
+          type="email"
+          autoComplete="email"
+          placeholder="nom@exemple.fr"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+        />
+        <label htmlFor="auth-password">Mot de passe</label>
+        <input
+          id="auth-password"
+          type="password"
+          autoComplete={titre === "Inscription" ? "new-password" : "current-password"}
+          placeholder="8 caractères minimum"
+          required
+          minLength={8}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+        />
+      </div>
+      {error && <p className="auth-error" role="alert">{error}</p>}
+      <button className="auth-submit" type="submit" disabled={loading}>
+        {loading ? "Veuillez patienter..." : bouton}
       </button>
     </form>
   );

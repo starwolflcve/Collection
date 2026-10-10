@@ -13,9 +13,9 @@ export function RegisterPage() {
   }
 
   return (
-    <>
+    <section className="auth-page">
       <AuthForm titre="Inscription" bouton="Créer mon compte" onSubmit={submit} />
-      <p>Déjà inscrit ? <Link to="/login">Se connecter</Link></p>
-    </>
+      <p className="auth-footer">Déjà inscrit ? <Link to="/login">Se connecter</Link></p>
+    </section>
   );
 }
