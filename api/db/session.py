@@ -1,10 +1,11 @@
 from collections.abc import AsyncGenerator
+import os
 
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine
 
-DATABASE_URL = "sqlite+aiosqlite:///./voitures.db"
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./voitures.db")
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 

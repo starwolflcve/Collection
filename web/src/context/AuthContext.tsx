@@ -1,87 +1,65 @@
-// src/context/AuthContext.tsx
-import { createContext, useContext, useState, useEffect } from "react";
-import type { ReactNode } from "react";
-import type { AuthResponse, User } from "../../types/api";
-import { httpClient } from "../services/httpClient";
+import {
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
+  type ReactNode,
+} from "react";
 import { useLocalStorage } from "../hooks/useLocalStorage";
+import * as authService from "../services/authService";
+import { TOKEN_KEY } from "../services/httpClient";
+import type { Credentials, User } from "../types/api";
 
-interface AuthContextType {
-  token: string | null;
+interface AuthContextValue {
+  token: string;
   user: User | null;
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  ready: boolean;
+  login: (c: Credentials) => Promise<void>;
+  register: (c: Credentials) => Promise<void>;
   logout: () => void;
-  isLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useLocalStorage<string | null>("token", null);
+interface Props { children: ReactNode }
+
+export function AuthProvider({ children }: Props) {
+  const [token, setToken] = useLocalStorage<string>(TOKEN_KEY, "");
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [ready, setReady] = useState<boolean>(false);
+
+  const logout = useCallback((): void => {
+    setToken("");
+    setUser(null);
+  }, [setToken]);
 
   useEffect(() => {
-    let actif = true;
+    if (!token) { setUser(null); setReady(true); return; }
+    let annule = false;
+    authService.me()
+      .then((u) => { if (!annule) setUser(u); })
+      .catch(() => { if (!annule) logout(); })
+      .finally(() => { if (!annule) setReady(true); });
+    return () => { annule = true; };
+  }, [token, logout]);
 
-    if (!token) {
-      setUser(null);
-      setIsLoading(false);
-      return () => {
-        actif = false;
-      };
-    }
+  const login = useCallback(async (c: Credentials): Promise<void> => {
+    const res = await authService.login(c);
+    setToken(res.access_token);
+  }, [setToken]);
 
-    setIsLoading(true);
-    httpClient.get<User>("/auth/me")
-      .then((utilisateur) => {
-        if (actif) setUser(utilisateur);
-      })
-      .catch(() => {
-        if (actif) {
-          setToken(null);
-          setUser(null);
-        }
-      })
-      .finally(() => {
-        if (actif) setIsLoading(false);
-      });
+  const register = useCallback(async (c: Credentials): Promise<void> => {
+    await authService.register(c);
+    await login(c);
+  }, [login]);
 
-    return () => {
-      actif = false;
-    };
-  }, [token, setToken]);
-
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const response = await httpClient.post<AuthResponse>("/auth/login", { email, password });
-      setToken(response.access_token);
-    } catch (error) {
-      setIsLoading(false);
-      throw error;
-    }
-  };
-
-  const register = async (email: string, password: string) => {
-    await httpClient.post<User>("/auth/register", { email, password });
-  };
-  
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-  };
-
-  return (
-    <AuthContext.Provider value={{ token, user, isAuthenticated: Boolean(token && user), login, register, logout, isLoading }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo<AuthContextValue>(
+    () => ({ token, user, ready, login, register, logout }),
+    [token, user, ready, login, register, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) throw new Error("useAuth doit être utilisé dans un AuthProvider");
-  return context;
-};
+export function useAuth(): AuthContextValue {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth doit être utilisé dans AuthProvider");
+  return ctx;
+}

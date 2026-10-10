@@ -1,50 +1,80 @@
-// src/types/api.ts
-
-export type Statut = "a decouvrir" | "en cours" | "termine";
-
-export interface Item {
-  id: number;
-  titre: string;
-  image_url: string;
-  categorie: string;
-  description: string;
-  annee: number;
-  // Champs spécifiques à l'univers automobile
-  constructeur?: string;
-  motorisation?: string;
-  puissance?: string;
-  pays?: string;
-}
-
-export interface Entry {
-  id: number;
-  statut: Statut;
-  note?: number;
-  commentaire?: string;
-  date_ajout: string;
-  item: Item;
-}
-
-export interface PaginatedResponse<T> {
-  total: number;
-  page: number;
-  limit: number;
-  results: T[];
-}
+export type Statut = "a_decouvrir" | "en_cours" | "termine";
+export type Tri = "date" | "note";
 
 export interface User {
   id: number;
   email: string;
 }
 
-export interface AuthResponse {
+export interface Credentials {
+  email: string;
+  password: string;
+}
+
+export interface TokenResponse {
   access_token: string;
   token_type: string;
 }
 
-export interface ApiErrorFormat {
-  erreur: {
-    code: number;
-    message: string;
-  };
+export interface Item {
+  id: number;
+  titre: string;
+  categorie: string;
+  description: string;
+  image_url: string;
+  annee: number;
+  // Champs propres à l'univers : adaptez-les à votre API
+  marque: string;
+  puissance_ch: number;
+}
+
+export interface ItemsPage {
+  total: number;
+  page: number;
+  limit: number;
+  results: Item[];
+}
+
+export interface ItemsQuery {
+  q?: string;
+  categorie?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface Entry {
+  id: number;
+  statut: Statut;
+  note: number | null;
+  commentaire: string | null;
+  date_ajout: string;
+  item: Item;
+}
+
+export interface EntryCreate {
+  item_id: number;
+  statut: Statut;
+  note?: number;
+  commentaire?: string;
+}
+
+export interface EntryUpdate {
+  statut?: Statut;
+  note?: number;
+  commentaire?: string;
+}
+
+export interface CollectionQuery {
+  statut?: Statut;
+  tri?: Tri;
+}
+
+export interface Stats {
+  total: number;
+  par_statut: Record<Statut, number>;
+  note_moyenne: number | null;
+}
+
+export interface ApiErrorBody {
+  erreur: { code: number; message: string };
 }

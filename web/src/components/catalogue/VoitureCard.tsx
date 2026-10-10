@@ -3,9 +3,12 @@ import type { Item } from '../../../types/api';
 interface VoitureCardProps {
   item: Item;
   onOpenDetails: (item: Item) => void;
+  onAddToCollection: (item: Item) => void;
+  isInCollection: boolean;
+  isAdding: boolean;
 }
 
-export default function VoitureCard({ item, onOpenDetails }: VoitureCardProps) {
+export default function VoitureCard({ item, onOpenDetails, onAddToCollection, isInCollection, isAdding }: VoitureCardProps) {
   return (
     <article className="car-card">
       <div className="car-image-wrap">
@@ -33,6 +36,14 @@ export default function VoitureCard({ item, onOpenDetails }: VoitureCardProps) {
             className="car-link"
           >
             Voir détails <span aria-hidden="true">→</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => onAddToCollection(item)}
+            className="car-link"
+            disabled={isInCollection || isAdding}
+          >
+            {isInCollection ? "Dans ma collection" : isAdding ? "Ajout..." : "Ajouter à ma collection"}
           </button>
         </div>
       </div>

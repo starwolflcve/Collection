@@ -1,51 +1,86 @@
-// src/services/httpClient.ts
-import type { ApiErrorFormat } from "../../types/api";
+import type { ApiErrorBody } from "../types/api";
 
-const API_URL = "http://localhost:8000";
+const BASE_URL: string = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+export const TOKEN_KEY = "token";
 
 export class ApiError extends Error {
-  public code: number;
+  readonly code: number;
   constructor(code: number, message: string) {
     super(message);
+    this.name = "ApiError";
     this.code = code;
   }
 }
 
-async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-  const token = localStorage.getItem("token")?.replace(/"/g, "");
-  
-  const headers = new Headers(options.headers);
-  headers.set("Content-Type", "application/json");
-
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-
-  if (!response.ok) {
-    let errorMessage = "Une erreur est survenue";
-    try {
-      const errorData = (await response.json()) as ApiErrorFormat;
-      if (errorData.erreur) {
-        errorMessage = errorData.erreur.message;
-      }
-    } catch (e) {
-      // Ignorer si le format d'erreur n'est pas du JSON valide
-    }
-    throw new ApiError(response.status, errorMessage);
-  }
-
-  if (response.status === 204) {
-    return {} as T; // Pas de contenu
-  }
-
-  return response.json() as Promise<T>;
+function isApiErrorBody(v: unknown): v is ApiErrorBody {
+  if (typeof v !== "object" || v === null || !("erreur" in v)) return false;
+  const e = (v as { erreur: unknown }).erreur;
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    typeof (e as { code?: unknown }).code === "number" &&
+    typeof (e as { message?: unknown }).message === "string"
+  );
 }
 
-export const httpClient = {
-  get: <T>(url: string) => request<T>(url, { method: "GET" }),
-  post: <T>(url: string, body: unknown) => request<T>(url, { method: "POST", body: JSON.stringify(body) }),
-  patch: <T>(url: string, body: unknown) => request<T>(url, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: <T>(url: string) => request<T>(url, { method: "DELETE" }),
-};
+function readToken(): string | null {
+  const raw = localStorage.getItem(TOKEN_KEY);
+  if (raw === null) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return typeof parsed === "string" && parsed !== "" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+type Params = Record<string, string | number | undefined>;
+
+interface RequestOptions {
+  method?: "GET" | "POST" | "PATCH" | "DELETE";
+  body?: unknown;
+  params?: Params;
+}
+
+function buildUrl(path: string, params?: Params): string {
+  const url = new URL(path, BASE_URL);
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
+    }
+  }
+  return url.toString();
+}
+
+export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+  const headers: Record<string, string> = {};
+  const token = readToken();
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (opts.body !== undefined) headers["Content-Type"] = "application/json";
+
+  let response: Response;
+  try {
+    response = await fetch(buildUrl(path, opts.params), {
+      method: opts.method ?? "GET",
+      headers,
+      body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+    });
+  } catch {
+    throw new ApiError(0, "Serveur injoignable");
+  }
+
+  if (response.status === 204) return undefined as T;
+
+  let data: unknown = null;
+  try {
+    data = await response.json();
+  } catch {
+    data = null;
+  }
+
+  if (!response.ok) {
+    if (isApiErrorBody(data)) throw new ApiError(data.erreur.code, data.erreur.message);
+    throw new ApiError(response.status, "Erreur inattendue");
+  }
+  return data as T;
+}

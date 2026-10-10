@@ -1,16 +1,9 @@
 # --- Frontend (React / Vite) ---
 web/node_modules/
-web/dist/
+
 
 # --- Backend (FastAPI) ---
-api/.env
-api/.venv/
-api/__pycache__/
-**/__pycache__/
-*.pyc
-*.db
+
 
 # --- Fichiers système et caches ---
-.DS_Store
-Thumbs.db
-.vscode/
+
