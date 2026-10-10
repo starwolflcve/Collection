@@ -1,4 +1,4 @@
-import type { Item } from '../../../types/api';
+import type { Item } from '../../types/api';
 
 interface VoitureCardProps {
   item: Item;

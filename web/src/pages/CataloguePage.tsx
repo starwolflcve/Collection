@@ -1,27 +1,20 @@
-// src/pages/CataloguePage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Item } from "../../types/api";
-import { useDebounce } from "../hooks/useDebounce";
-import EmptyState from "../components/common/EmptyState";
+import type { Item } from "../types/api";
+import { SearchBar } from "../components/catalogue/SearchBar";
 import VoitureCard from "../components/catalogue/VoitureCard";
 import VoitureDetail from "../components/catalogue/VoitureDetail";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { Pagination } from "../components/ui/Pagination";
 import { useAuth } from "../context/AuthContext";
 import { useCollection } from "../context/CollectionContext";
-import { voitures } from "../data/voitures";
+import { useAsync } from "../hooks/useAsync";
+import { useDebounce } from "../hooks/useDebounce";
+import { getItems } from "../services/itemsService";
 
-const voituresCatalogue: Item[] = voitures.map((voiture) => ({
-  id: voiture.id,
-  titre: voiture.nom,
-  image_url: `/voitures_catalogue/${encodeURIComponent(voiture.image)}`,
-  categorie: voiture.categorie,
-  description: voiture.description,
-  annee: voiture.annee,
-  constructeur: voiture.marque,
-  motorisation: voiture.moteur,
-  puissance: voiture.puissance,
-  pays: voiture.pays,
-}));
+const categories = ["berline", "coupe", "sportive", "suv", "utilitaire"];
+const pageSize = 12;
 
 export default function CataloguePage() {
   const navigate = useNavigate();
@@ -34,16 +27,15 @@ export default function CataloguePage() {
   const [categorie, setCategorie] = useState("");
   const [page, setPage] = useState(1);
   const debouncedRecherche = useDebounce(recherche, 400);
-  const pageSize = 12;
-  const rechercheNormalisee = debouncedRecherche.trim().toLocaleLowerCase("fr");
-  const voituresFiltrees = voituresCatalogue.filter((voiture) => {
-    const correspondRecherche = [voiture.titre, voiture.constructeur, voiture.categorie]
-      .some((valeur) => valeur?.toLocaleLowerCase("fr").includes(rechercheNormalisee));
-    return correspondRecherche && (!categorie || voiture.categorie === categorie);
-  });
-  const total = voituresFiltrees.length;
-  const nombrePages = Math.max(1, Math.ceil(total / pageSize));
-  const items = voituresFiltrees.slice((page - 1) * pageSize, page * pageSize);
+  const { data, loading, error, reload } = useAsync(
+    () => getItems({
+      q: debouncedRecherche.trim().length >= 2 ? debouncedRecherche.trim() : undefined,
+      categorie: categorie || undefined,
+      page,
+      limit: pageSize,
+    }),
+    [debouncedRecherche, categorie, page],
+  );
 
   const ajouterALaCollection = async (item: Item) => {
     if (!token) {
@@ -67,36 +59,24 @@ export default function CataloguePage() {
       <div className="catalogue-content">
         <h1 className="catalogue-title">Le Registre des Légendes</h1>
         <p className="catalogue-subtitle">Explorez, gérez et complétez votre catalogue de joyaux de l'histoire automobile.</p>
-        
-        <div className="catalogue-toolbar">
-          <input 
-            type="text" 
-            placeholder="Rechercher un modèle..." 
-            className="catalogue-search"
-            value={recherche}
-            onChange={(e) => { setRecherche(e.target.value); setPage(1); }}
-          />
-          <select
-            className="catalogue-search catalogue-category"
-            value={categorie}
-            onChange={(e) => { setCategorie(e.target.value); setPage(1); }}
-            aria-label="Filtrer par catégorie"
-          >
-            <option value="">Toutes les catégories</option>
-            {[...new Set(voituresCatalogue.map((voiture) => voiture.categorie))].map((nomCategorie) => (
-              <option key={nomCategorie} value={nomCategorie}>{nomCategorie}</option>
-            ))}
-          </select>
-        </div>
+        <SearchBar
+          q={recherche}
+          categorie={categorie}
+          categories={categories}
+          onQ={(value) => { setRecherche(value); setPage(1); }}
+          onCategorie={(value) => { setCategorie(value); setPage(1); }}
+        />
 
         {erreurAjout && <p className="catalogue-state" role="alert">{erreurAjout}</p>}
-
-        {items.length === 0 && <EmptyState message="Aucun véhicule trouvé." />}
-        
-        {items.length > 0 && (
+        {loading && <p className="catalogue-state" role="status">Chargement du catalogue...</p>}
+        {!loading && error && <ErrorMessage message={error} onRetry={reload} />}
+        {!loading && !error && data && data.results.length === 0 && (
+          <EmptyState message="Aucun véhicule trouvé." />
+        )}
+        {!loading && !error && data && data.results.length > 0 && (
           <>
             <div className="cars-grid">
-              {items.map((item) => (
+              {data.results.map((item) => (
                 <VoitureCard
                   key={item.id}
                   item={item}
@@ -107,14 +87,12 @@ export default function CataloguePage() {
                 />
               ))}
             </div>
-            {/* Composant Pagination à extraire */}
-            <div className="catalogue-footer">
-              <p>Affichage de {items.length} véhicules sur {total}</p>
-              <div className="pagination">
-                <button disabled={page === 1} onClick={() => setPage(p => p - 1)} className="page-btn">Précédent</button>
-                <button disabled={page >= nombrePages} onClick={() => setPage(p => p + 1)} className="page-btn">Suivant</button>
-              </div>
-            </div>
+            <Pagination
+              page={data.page}
+              total={data.total}
+              limit={data.limit}
+              onChange={setPage}
+            />
           </>
         )}
       </div>

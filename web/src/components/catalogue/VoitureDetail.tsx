@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import type { Item, Statut } from '../../../types/api';
+import type { Item, Statut } from '../../types/api';
 import { useCollection } from '../../context/CollectionContext';
 
 interface VoitureDetailProps {
@@ -63,7 +63,7 @@ export default function VoitureDetail({ item, onClose }: VoitureDetailProps) {
               <tbody>
                 {[
                   ['Constructeur :', item.constructeur],
-                  ['Motorisation :', item.motorisation],
+                  ['Motorisation :', item.moteur],
                   ['Puissance :', item.puissance],
                   ['Pays d\'origine :', item.pays]
                 ].map(([label, val], idx) => (

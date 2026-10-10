@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import type { Stats } from "../../types/api";
-import EmptyState from "../components/common/EmptyState";
-import ErrorState from "../components/common/ErrorState";
-import { httpClient } from "../services/httpClient";
+import type { Stats } from "../types/api";
+import { EmptyState } from "../components/ui/EmptyState";
+import { ErrorMessage } from "../components/ui/ErrorMessage";
+import { getStats } from "../services/collectionService";
 
 const statuts: { cle: keyof Stats["par_statut"]; libelle: string }[] = [
   { cle: "a_decouvrir", libelle: "À découvrir" },
@@ -21,7 +21,7 @@ export default function StatsPage() {
 
     setIsLoading(true);
     setError(null);
-    httpClient.get<Stats>("/me/stats")
+    getStats()
       .then((result) => {
         if (active) setStats(result);
       })
@@ -50,12 +50,7 @@ export default function StatsPage() {
 
       {isLoading && <p className="catalogue-state" role="status">Chargement des statistiques...</p>}
       {!isLoading && error && (
-        <div>
-          <ErrorState message={error} />
-          <button className="page-btn" type="button" onClick={() => setReloadKey((key) => key + 1)}>
-            Réessayer
-          </button>
-        </div>
+        <ErrorMessage message={error} onRetry={() => setReloadKey((key) => key + 1)} />
       )}
       {!isLoading && !error && stats && stats.total === 0 && (
         <EmptyState message="Aucun véhicule dans votre collection pour le moment." />
@@ -69,7 +64,7 @@ export default function StatsPage() {
           </article>
           <article className="stats-card">
             <h2>Note moyenne</h2>
-            <p className="stats-value">{stats.note_moyenne.toFixed(1)}<span> / 5</span></p>
+            <p className="stats-value">{stats.note_moyenne?.toFixed(1) ?? "—"}<span> / 5</span></p>
           </article>
           <article className="stats-card stats-status-card">
             <h2>Répartition par statut</h2>

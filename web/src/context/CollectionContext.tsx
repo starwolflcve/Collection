@@ -1,8 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import type { Entry, Item, Statut } from "../../types/api";
+import type { Entry, EntryCreate, EntryUpdate, Item, Statut } from "../types/api";
 import { useAuth } from "./AuthContext";
-import { httpClient } from "../services/httpClient";
+import * as collectionService from "../services/collectionService";
 
 interface EntryValues {
 	statut: Statut;
@@ -43,7 +43,7 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 
 		setIsLoading(true);
 		setError(null);
-		httpClient.get<Entry[]>("/me/collection")
+		collectionService.getCollection({})
 			.then((collection) => {
 				if (active) setEntries(collection);
 			})
@@ -62,22 +62,24 @@ export function CollectionProvider({ children }: { children: ReactNode }) {
 	}, [token, refreshKey]);
 
 	const addEntry = async (item: Item, values: EntryValues) => {
-		const entry = await httpClient.post<Entry>("/me/collection", {
+		const payload: EntryCreate = {
 			item_id: item.id,
 			...values,
-		});
+		};
+		const entry = await collectionService.addEntry(payload);
 		setEntries((current) => [...current.filter((existing) => existing.id !== entry.id), entry]);
 		return entry;
 	};
 
 	const updateEntry = async (entryId: number, values: Partial<EntryValues>) => {
-		const entry = await httpClient.patch<Entry>(`/me/collection/${entryId}`, values);
+		const payload: EntryUpdate = values;
+		const entry = await collectionService.updateEntry(entryId, payload);
 		setEntries((current) => current.map((existing) => existing.id === entryId ? entry : existing));
 		return entry;
 	};
 
 	const deleteEntry = async (entryId: number) => {
-		await httpClient.delete<void>(`/me/collection/${entryId}`);
+		await collectionService.deleteEntry(entryId);
 		setEntries((current) => current.filter((entry) => entry.id !== entryId));
 	};
 

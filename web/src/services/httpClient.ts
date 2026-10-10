@@ -1,4 +1,5 @@
 import type { ApiErrorBody } from "../types/api";
+import { readLocalStorage, writeLocalStorage } from "../utils/storage";
 
 const BASE_URL: string = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 export const TOKEN_KEY = "token";
@@ -23,17 +24,6 @@ function isApiErrorBody(v: unknown): v is ApiErrorBody {
   );
 }
 
-function readToken(): string | null {
-  const raw = localStorage.getItem(TOKEN_KEY);
-  if (raw === null) return null;
-  try {
-    const parsed: unknown = JSON.parse(raw);
-    return typeof parsed === "string" && parsed !== "" ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
 type Params = Record<string, string | number | undefined>;
 
 interface RequestOptions {
@@ -54,7 +44,8 @@ function buildUrl(path: string, params?: Params): string {
 
 export async function request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {};
-  const token = readToken();
+  const storedToken = readLocalStorage(TOKEN_KEY, "");
+  const token = typeof storedToken === "string" && storedToken !== "" ? storedToken : null;
   if (token) headers["Authorization"] = `Bearer ${token}`;
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
 
@@ -67,6 +58,18 @@ export async function request<T>(path: string, opts: RequestOptions = {}): Promi
     });
   } catch {
     throw new ApiError(0, "Serveur injoignable");
+  }
+
+  if (
+    response.status === 401 &&
+    token &&
+    path !== "/auth/login" &&
+    path !== "/auth/register"
+  ) {
+    writeLocalStorage(TOKEN_KEY, "");
+    if (window.location.pathname !== "/login") {
+      window.location.assign("/login");
+    }
   }
 
   if (response.status === 204) return undefined as T;
