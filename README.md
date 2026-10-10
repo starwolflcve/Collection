@@ -1,11 +1,42 @@
 # Ma Collection
 
+## Présentation du projet
+
+Application web permettant d'explorer un catalogue de voitures et de gérer sa collection personnelle. Les utilisateurs peuvent créer un compte, ajouter des voitures à leur collection, modifier leur statut, leur note et leur commentaire, puis consulter leurs statistiques.
+
+
+## Architecture
+
+```
+.
+├── api/                       # API Python / FastAPI
+│   ├── core/                  # Configuration, sécurité et erreurs
+│   ├── db/                    # Base SQLite asynchrone
+│   ├── dependencies/          # Authentification et pagination
+│   ├── models/                # Modèles de données
+│   ├── routers/               # Routes de l'API
+│   ├── schemas/               # Schémas de requête et de réponse
+│   ├── static/                # Images des voitures
+│   ├── seed.py                # Peuplement initial du catalogue
+│   └── main.py                # Assemblage de l'application
+└── web/                       # Interface React / TypeScript
+    └── src/
+        ├── components/        # Composants d'interface
+        ├── context/           # État d'authentification et collection
+        ├── hooks/             # Hooks React réutilisables
+        ├── pages/             # Pages de l'application
+        ├── services/          # Client HTTP et appels à l'API
+        ├── styles/            # Feuilles de style
+        └── types/             # Types TypeScript de l'API
+```
+
 ## Prérequis
 
-- **Windows : Python 3.12 64 bits**. Installez-le depuis [python.org](https://www.python.org/downloads/) et cochez l'option d'ajout au `PATH`. Fermez puis rouvrez PowerShell après l'installation. Python 3.14 32 bits n'est pas pris en charge par certaines dépendances du backend.
-- **Node.js 20 ou supérieur** avec npm.
+- Windows 64 bits avec **Python 3.12 64 bits** pour l'API.
+- **Node.js 20 ou supérieur** et npm pour l'interface.
+- PowerShell.
 
-Vérifiez les installations dans PowerShell :
+Vérifiez que les outils sont disponibles :
 
 ```powershell
 py -3.12 --version
@@ -13,76 +44,77 @@ node --version
 npm --version
 ```
 
-La première commande doit afficher `Python 3.12.x`. Si elle affiche `No suitable Python runtime found`, Python 3.12 n'est pas installé : installez-le depuis le lien ci-dessus, puis rouvrez PowerShell. Les commandes `python` et `uvicorn` seules ne fonctionneront pas avant l'installation des dépendances.
+La première commande doit afficher `Python 3.12.x`. Si vous voyez `No suitable Python runtime found`, Python 3.12 n'est pas installé ou détecté.
 
-## Démarrage sous Windows
+## Commandes principales
 
-**Exécutez les commandes une par une.** Le backend et le frontend doivent tourner dans deux terminaux PowerShell séparés, laissés ouverts.
+| Commande | Dossier | Rôle |
+| --- | --- | --- |
+| `py -3.12 -m venv .venv` | `api` | Créer l'environnement Python (une seule fois) |
+| `.\.venv\Scripts\python.exe -m pip install -r requirements.txt` | `api` | Installer les dépendances backend |
+| `.\.venv\Scripts\python.exe seed.py` | `api` | Créer/remplir la base avec le catalogue |
+| `.\.venv\Scripts\python.exe -m uvicorn main:app --reload` | `api` | Démarrer l'API |
+| `npm install` | `web` | Installer les dépendances frontend |
+| `npm run dev` | `web` | Démarrer l'interface |
+| `npm run build` | `web` | Vérifier/compiler le frontend |
 
-### Terminal 1 — API
+## Guide de lancement sous Windows
 
-Depuis la racine du dépôt (`C:\Users\quent\Collection` dans cet exemple) :
+L'API et l'interface doivent tourner en même temps dans **deux fenêtres PowerShell séparées**. À chaque étape, entrez les commandes une par une.
+
+### 1. Préparer et démarrer l'API
+
+Ouvrez le premier terminal à la racine du projet (le dossier contenant `api` et `web`), puis :
 
 ```powershell
-cd C:\Users\quent\Collection\api
+cd .\api
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-La commande de création de l'environnement virtuel ne se fait qu'une seule fois. Si `.venv` existe déjà, passez cette commande.
-
-Créez le fichier de configuration seulement s'il n'existe pas déjà, afin de ne pas écraser votre clé secrète :
+La création de `.venv` se fait uniquement lors de la première installation. Créez ensuite le fichier de configuration sans remplacer un éventuel fichier existant :
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 notepad .env
 ```
 
-Dans `.env`, remplacez la valeur de `JWT_SECRET_KEY` par une clé aléatoire. Générez-en une dans PowerShell avec :
+Dans `.env`, remplacez `JWT_SECRET_KEY` par une clé aléatoire. Pour en générer une, ouvrez un autre terminal et exécutez :
 
 ```powershell
 py -3.12 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
-Enregistrez le fichier, puis peuplez la base (vous pouvez relancer cette commande sans créer de doublons) et démarrez l'API :
+Copiez la clé obtenue dans `.env` et enregistrez le fichier. Revenez au premier terminal, toujours dans `api` :
 
 ```powershell
 .\.venv\Scripts\python.exe seed.py
 .\.venv\Scripts\python.exe -m uvicorn main:app --reload
 ```
 
-Laissez le terminal ouvert. L'API est à <http://localhost:8000> et sa documentation à <http://localhost:8000/docs>.
+Laissez ce terminal ouvert. L'API et sa documentation sont disponibles ici :
 
-### Terminal 2 — interface web
+- API : <http://localhost:8000>
+- Documentation : <http://localhost:8000/docs>
 
-Ouvrez un **nouveau** terminal PowerShell :
+### 2. Démarrer l'interface
+
+Ouvrez un **deuxième terminal PowerShell** à la racine du projet :
 
 ```powershell
-cd C:\Users\quent\Collection\web
+cd .\web
 npm install
 npm run dev
 ```
 
-`npm install` est nécessaire à la première installation (et après un changement des dépendances). Laissez le terminal ouvert et ouvrez <http://localhost:5173>.
+Laissez aussi ce terminal ouvert, puis ouvrez <http://localhost:5173>.
 
-Pour arrêter l'un des serveurs, revenez dans son terminal et appuyez sur `Ctrl+C`. Aux prochains démarrages, il suffit de relancer les deux commandes `python.exe ... -m uvicorn` et `npm run dev` dans leurs terminaux respectifs.
+### Démarrages suivants
 
-## macOS / Linux
+Après l'installation initiale, lancez seulement les serveurs :
 
-Installez Python 3.12 et Node.js 20+, puis dans un terminal :
+- Terminal API : `cd .\api`, puis `.\.venv\Scripts\python.exe -m uvicorn main:app --reload`.
+- Terminal frontend : `cd .\web`, puis `npm run dev`.
 
-```sh
-cd api
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-```
+Arrêtez chaque serveur avec `Ctrl+C` dans son terminal. N'exécutez pas `npm run dev` dans `api` : la commande doit être lancée dans `web`.
 
-Définissez `JWT_SECRET_KEY` dans `api/.env`, puis, depuis `api`, lancez `python seed.py` et `python -m uvicorn main:app --reload`. Dans un second terminal, lancez `cd web`, `npm install`, puis `npm run dev`.
-
-L'interface est accessible sur <http://localhost:5173>. L'API répond sur <http://localhost:8000> et sa documentation interactive est disponible sur <http://localhost:8000/docs>. L'inscription se fait sur `/register`, puis la connexion sur `/login`. Les mots de passe sont hachés côté API et le token d'accès est conservé dans le stockage local du navigateur.
-
-Le stockage local permet au JavaScript de la page de lire le token : une faille XSS pourrait donc le dérober et l'utiliser pour agir au nom de l'utilisateur jusqu'à son expiration. En production, une alternative consiste à stocker le token dans un cookie `HttpOnly` (également `Secure` et avec une politique `SameSite` appropriée), inaccessible au JavaScript. Cette approche nécessite une gestion complémentaire des requêtes authentifiées et de la protection contre les attaques CSRF.
-
-Des instructions détaillées sont disponibles dans [api/README.md](./api/README.md) et [web/README.md](./web/README.md).
