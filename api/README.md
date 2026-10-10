@@ -43,4 +43,4 @@ python seed.py
 uvicorn main:app --reload
 ```
 
-La documentation interactive est disponible sur <http://localhost:8000/docs>. Le script `seed.py` peut être relancé sans ajouter de doublons.
+La documentation interactive est disponible sur <http://localhost:8000/docs>. Le script `seed.py` peut être relancé sans ajouter de doublons. Les images du catalogue sont servies par l'API sous `/static/voitures_catalogue/`.

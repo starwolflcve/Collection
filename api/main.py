@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from core.erreurs import enregistrer_handlers
 from db.base import creer_tables
@@ -19,6 +21,12 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Ma Collection - API",
     lifespan=lifespan,
+)
+
+app.mount(
+    "/static",
+    StaticFiles(directory=Path(__file__).parent / "static"),
+    name="static",
 )
 
 # CORS restreint à l'origine du serveur de dev Vite, et elle seule

@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -21,3 +23,7 @@ class ItemListe(BaseModel):
     page: int
     limit: int
     results: list[ItemRead]
+
+
+def avec_url_image_absolue(item: ItemRead, base_url: str) -> ItemRead:
+    return item.model_copy(update={"image_url": urljoin(base_url, item.image_url)})

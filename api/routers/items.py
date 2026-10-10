@@ -1,11 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from db.session import get_session
 from dependencies.pagination import ParametresCatalogue, parametres_catalogue
 from models.item import Voiture
-from schemas.item import ItemRead, ItemListe
+from schemas.item import ItemRead, ItemListe, avec_url_image_absolue
 
 router = APIRouter(prefix="/items", tags=["catalogue"])
 
@@ -16,6 +16,7 @@ router = APIRouter(prefix="/items", tags=["catalogue"])
     summary="Rechercher et lister les voitures du catalogue",
 )
 async def lister_items(
+    request: Request,
     parametres: ParametresCatalogue = Depends(parametres_catalogue),
     session: AsyncSession = Depends(get_session),
 ) -> ItemListe:
@@ -43,7 +44,13 @@ async def lister_items(
         total=total,
         page=parametres.page,
         limit=parametres.limit,
-        results=[ItemRead.model_validate(item, from_attributes=True) for item in resultats],
+        results=[
+            avec_url_image_absolue(
+                ItemRead.model_validate(item, from_attributes=True),
+                str(request.base_url),
+            )
+            for item in resultats
+        ],
     )
 
 
@@ -55,9 +62,13 @@ async def lister_items(
 )
 async def obtenir_item(
     item_id: int,
+    request: Request,
     session: AsyncSession = Depends(get_session),
 ) -> ItemRead:
     voiture = await session.get(Voiture, item_id)
     if voiture is None:
         raise HTTPException(status_code=404, detail="Item introuvable")
-    return ItemRead.model_validate(voiture, from_attributes=True)
+    return avec_url_image_absolue(
+        ItemRead.model_validate(voiture, from_attributes=True),
+        str(request.base_url),
+    )

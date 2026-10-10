@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -10,19 +10,24 @@ from models.collection import EntreeCollection, Statut
 from models.item import Voiture
 from models.user import Utilisateur
 from schemas.collection import EntryCreate, EntryRead, EntryUpdate, StatsRead
-from schemas.item import ItemRead
+from schemas.item import ItemRead, avec_url_image_absolue
 
 router = APIRouter(prefix="/me", tags=["collection"])
 
 
-def construire_entry(entree: EntreeCollection, voiture: Voiture) -> EntryRead:
+def construire_entry(
+    entree: EntreeCollection, voiture: Voiture, base_url: str
+) -> EntryRead:
     return EntryRead(
         id=entree.id,
         statut=entree.statut,
         note=entree.note,
         commentaire=entree.commentaire,
         date_ajout=entree.date_ajout,
-        item=ItemRead.model_validate(voiture, from_attributes=True),
+        item=avec_url_image_absolue(
+            ItemRead.model_validate(voiture, from_attributes=True),
+            base_url,
+        ),
     )
 
 
@@ -49,6 +54,7 @@ async def obtenir_entree_du_proprietaire(
     summary="Lister ma collection",
 )
 async def lister_collection(
+    request: Request,
     statut: Statut | None = Query(default=None),
     tri: Literal["date", "note"] = Query(default="date"),
     utilisateur: Utilisateur = Depends(get_current_user),
@@ -68,7 +74,10 @@ async def lister_collection(
         requete = requete.order_by(EntreeCollection.date_ajout.desc())
 
     lignes = (await session.exec(requete)).all()
-    return [construire_entry(entree, voiture) for entree, voiture in lignes]
+    return [
+        construire_entry(entree, voiture, str(request.base_url))
+        for entree, voiture in lignes
+    ]
 
 
 @router.post(
@@ -80,6 +89,7 @@ async def lister_collection(
 )
 async def ajouter_entree(
     donnees: EntryCreate,
+    request: Request,
     utilisateur: Utilisateur = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> EntryRead:
@@ -109,7 +119,7 @@ async def ajouter_entree(
     await session.commit()
     await session.refresh(entree)
 
-    return construire_entry(entree, voiture)
+    return construire_entry(entree, voiture, str(request.base_url))
 
 
 @router.patch(
@@ -121,6 +131,7 @@ async def ajouter_entree(
 async def modifier_entree(
     entry_id: int,
     donnees: EntryUpdate,
+    request: Request,
     utilisateur: Utilisateur = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> EntryRead:
@@ -134,7 +145,7 @@ async def modifier_entree(
     await session.refresh(entree)
 
     voiture = await session.get(Voiture, entree.voiture_id)
-    return construire_entry(entree, voiture)
+    return construire_entry(entree, voiture, str(request.base_url))
 
 
 @router.delete(
